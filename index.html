@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legume Instant Pot Cooking Times</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .results {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .legume-item {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .legume-item:last-child {
+            border-bottom: none;
+        }
+        
+        .legume-item.hidden {
+            display: none;
+        }
+        
+        .legume-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .aliases {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+        
+        .cooking-times {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .time-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .time-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .time-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
+        .time-value.soaked {
+            color: #2196F3;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            display: none;
+        }
+        
+        .no-results.visible {
+            display: block;
+        }
+        
+        .match-count {
+            padding: 12px 16px;
+            color: #666;
+            font-size: 14px;
+            background: white;
+            border-radius: 8px 8px 0 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Instant Pot Legume Cooking Times</h1>
+    <div class="subtitle">Times are in minutes at high pressure with natural release</div>
+    
+    <input 
+        type="text" 
+        id="searchInput" 
+        class="search-box" 
+        placeholder="Search for a legume (e.g., chickpeas, lentils, black beans)..."
+        autofocus
+    >
+    
+    <div class="match-count" id="matchCount"></div>
+    
+    <div class="results" id="results"></div>
+    
+    <div class="no-results" id="noResults">
+        No legumes found matching your search
+    </div>
+
+    <script>
+        const legumes = [
+            {"legume": "Adzuki or Azuki, red and green", "dry": "20", "soaked": "9", "aliases": ["Soy, red", "Mung"]},
+            {"legume": "Anasazi", "dry": "22", "soaked": "7", "aliases": []},
+            {"legume": "Black Beans", "dry": "24", "soaked": "6", "aliases": []},
+            {"legume": "Black-eyed Peas", "dry": "7", "soaked": "5", "aliases": ["Lobia"]},
+            {"legume": "Borlotti", "dry": "25", "soaked": "10", "aliases": ["Cranberry", "Pinto"]},
+            {"legume": "Cannellini", "dry": "30", "soaked": "8", "aliases": ["Great Northern Beans", "Harticots", "Kidney Bean, white", "White Beans"]},
+            {"legume": "Chickpeas", "dry": "40", "soaked": "15", "aliases": ["Chole", "Garbanzo"]},
+            {"legume": "Chickpeas, split", "dry": "7", "soaked": "-", "aliases": []},
+            {"legume": "Corona", "dry": "30", "soaked": "10", "aliases": ["Giant White Beans"]},
+            {"legume": "Fava, dried", "dry": "30", "soaked": "12", "aliases": []},
+            {"legume": "Fava, fresh", "dry": "8", "soaked": "-", "aliases": []},
+            {"legume": "Lentils, Black Beluga", "dry": "8", "soaked": "-", "aliases": []},
+            {"legume": "Lentils, French Green, green, or mini", "dry": "10", "soaked": "5", "aliases": []},
+            {"legume": "Lentils, Split - Red, Orange, or Yellow", "dry": "1", "soaked": "-", "aliases": ["Masoor", "Peas, split, yellow or orange"]},
+            {"legume": "Lentils, regular", "dry": "12", "soaked": "-", "aliases": []},
+            {"legume": "Lima, baby or large", "dry": "15", "soaked": "7", "aliases": ["Giant White Beans"]},
+            {"legume": "Navy", "dry": "20", "soaked": "8", "aliases": ["Flageolet", "Peas, white"]},
+            {"legume": "Peanuts, Fresh", "dry": "-", "soaked": "50", "aliases": []},
+            {"legume": "Peas, whole green", "dry": "18", "soaked": "10", "aliases": []},
+            {"legume": "Peas, split, green", "dry": "5", "soaked": "-", "aliases": []},
+            {"legume": "Red Kidney", "dry": "24", "soaked": "8", "aliases": ["Rajma"]},
+            {"legume": "Scarlet runner", "dry": "20", "soaked": "8", "aliases": []},
+            {"legume": "Soy, yellow", "dry": "40", "soaked": "22", "aliases": []}
+        ];
+
+        const resultsContainer = document.getElementById('results');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+        const matchCount = document.getElementById('matchCount');
+
+        function renderLegumes(filteredLegumes) {
+            resultsContainer.innerHTML = '';
+            
+            if (filteredLegumes.length === 0) {
+                noResults.classList.add('visible');
+                matchCount.style.display = 'none';
+                return;
+            }
+            
+            noResults.classList.remove('visible');
+            matchCount.style.display = 'block';
+            matchCount.textContent = `Showing ${filteredLegumes.length} of ${legumes.length} legumes`;
+            
+            filteredLegumes.forEach(legume => {
+                const item = document.createElement('div');
+                item.className = 'legume-item';
+                
+                const dryTime = legume.dry === '-' ? 'N/A' : legume.dry + ' min';
+                const soakedTime = legume.soaked === '-' ? 'N/A' : legume.soaked + ' min';
+                
+                const aliasText = legume.aliases && legume.aliases.length > 0 
+                    ? `<div class="aliases">Also known as: ${legume.aliases.join(', ')}</div>`
+                    : '';
+                
+                item.innerHTML = `
+                    <div class="legume-name">${legume.legume}</div>
+                    ${aliasText}
+                    <div class="cooking-times">
+                        <div class="time-info">
+                            <span class="time-label">Dry</span>
+                            <span class="time-value">${dryTime}</span>
+                        </div>
+                        <div class="time-info">
+                            <span class="time-label">Soaked</span>
+                            <span class="time-value soaked">${soakedTime}</span>
+                        </div>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(item);
+            });
+        }
+
+        function filterLegumes() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                renderLegumes(legumes);
+                return;
+            }
+            
+            const filtered = legumes.filter(legume => {
+                // Search in main name
+                if (legume.legume.toLowerCase().includes(searchTerm)) {
+                    return true;
+                }
+                
+                // Search in aliases
+                if (legume.aliases && legume.aliases.length > 0) {
+                    return legume.aliases.some(alias => 
+                        alias.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                return false;
+            });
+            
+            renderLegumes(filtered);
+        }
+
+        searchInput.addEventListener('input', filterLegumes);
+
+        // Initial render
+        renderLegumes(legumes);
+    </script>
+</body>
+</html>
